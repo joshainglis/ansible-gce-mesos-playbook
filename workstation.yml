@@ -1,0 +1,111 @@
+- hosts: tag_slaves
+  gather_facts: yes
+
+  # workstation is where we will run the ansible-mesos-playbook
+- hosts: tag_workstation
+  gather_facts: yes
+  tasks:
+    - name: generate an ssh key
+      command: ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""
+      args:
+        creates: ~/.ssh/id_rsa
+    - name: Downloading pub key
+      fetch: src=~/.ssh/id_rsa.pub dest=/tmp/workstation_id_rsa.pub flat=yes fail_on_missing=yes
+    - name: update apt
+      apt: >
+        update_cache=yes
+        cache_valid_time=3600
+      when: ansible_os_family == "Debian"
+      sudo: yes
+
+    - name: install deps (Ubuntu)
+      apt: pkg=software-properties-common
+      when: ansible_os_family == "Debian"
+      sudo: yes
+    
+    
+    - name: add ppa repository
+      apt_repository: repo="ppa:ansible/ansible"
+      when: ansible_os_family == "Debian"
+      sudo: yes
+
+    - name: install deps (Ubuntu)
+      apt: >
+        pkg={{item}}
+        state=installed
+      with_items:
+        - git
+        - ansible
+        - ruby1.9.3
+      when: ansible_os_family == "Debian"
+      sudo: yes
+    
+    - name: install deps (RHEL)
+      yum: >
+        pkg={{item}}
+        state=installed
+      with_items:
+        - git
+        - ansible
+      when: ansible_os_family == "RedHat"
+      sudo: yes
+
+    - name: install gem librarian
+      gem: name={{item}} state=present user_install=no
+      sudo: yes
+      with_items:
+         - librarian-ansible
+
+    # not sure why these dependencies are not installing... (on debian, need to check ubuntu)
+    - name: install gem librarian dependencies
+      gem: name={{item}} state=present
+      with_items:
+         - librarian
+         - thor
+         - faraday
+         - highline
+         - multipart-post
+
+
+    - name: git clone ansible-mesos-playbook
+      git: repo=https://github.com/fullergalway/ansible-mesos-playbook.git dest=~/ansible-mesos-playbook update=no
+
+    - command: librarian-ansible install
+      args: 
+        chdir: ~/ansible-mesos-playbook/
+        creates: librarian-roles
+
+    - template: src=templates/hosts.j2 dest=~/ansible-mesos-playbook/hosts
+    - template: src=templates/ansible.cfg.j2 dest=~/ansible-mesos-playbook/ansible.cfg
+
+- hosts: localhost
+  gather_facts: yes
+  tasks:
+    - name: ws_id_rsa_pub contents
+      shell: cat /tmp/workstation_id_rsa.pub
+      register: cat_workstation_id_rsa_pub
+
+    - name: save workstation_id_rsa.pub as fact
+      set_fact: workstation_id_rsa_pub="{{ cat_workstation_id_rsa_pub.stdout }}"
+
+
+- hosts: tag_slaves
+  vars:
+     pub_key: "{{ lookup('file', '/tmp/workstation_id_rsa.pub') }}"
+  tasks:
+    - name: install deps (RHEL)
+      yum: >
+        pkg=libselinux-python
+        state=installed
+      when: ansible_os_family == "RedHat"
+      sudo: yes
+
+    # had some problems using authorized_key module, alas...
+    - name: allow access from workstation
+      lineinfile: dest=~/.ssh/authorized_keys line="{{ pub_key }}"
+- hosts: tag_workstation
+  tasks:
+    - name: orchestrate mesos cluster
+      command: ansible-playbook -i ./hosts playbook.yml
+      args: 
+        chdir: ~/ansible-mesos-playbook/

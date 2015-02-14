@@ -1,0 +1,50 @@
+- name: Create instance(s)
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    workstation_machine_type: g1-small
+    master_machine_type: g1-small
+    worker_machine_type: g1-small
+    image: https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/ubuntu-1404-trusty-v20150128
+    zone: europe-west1-b
+
+  tasks:
+
+   - name: Launch a workstation server
+     gce:
+         instance_names: dev
+         tags: workstation
+         machine_type: "{{ workstation_machine_type }}"
+         image: "{{ image }}"
+         zone: "{{ zone }}"
+
+   - name: Launch infrastructure servers (zk1)
+     gce:
+         instance_names: zk1
+         tags: zk1,slaves
+         machine_type: "{{ master_machine_type }}"
+         image: "{{ image }}"
+         zone: "{{ zone }}"
+   - name: Launch infrastructure servers (zk2)
+     gce:
+         instance_names: zk2
+         tags: zk2,slaves
+         machine_type: "{{ worker_machine_type }}"
+         image: "{{ image }}"
+         zone: "{{ zone }}"
+   - name: Launch infrastructure servers (zk3)
+     gce:
+         instance_names: zk3
+         tags: zk3,slaves
+         machine_type: "{{ worker_machine_type }}"
+         image: "{{ image }}"
+         zone: "{{ zone }}"
+   - name: Launch infrastructure servers (slaves)
+     gce:
+         instance_names: slave1,slave2
+         tags: workers,slaves
+         machine_type: "{{ worker_machine_type }}"
+         image: "{{ image }}"
+         zone: "{{ zone }}"

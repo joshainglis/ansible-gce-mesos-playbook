@@ -1,0 +1,9 @@
+[mesos_primaries]
+{{ hostvars[groups['tag_zk1'][0]]['ansible_eth0']['ipv4']['address'] }} zoo_id=1 consul_bootstrap=true
+{{ hostvars[groups['tag_zk2'][0]]['ansible_eth0']['ipv4']['address'] }} zoo_id=2
+{{ hostvars[groups['tag_zk3'][0]]['ansible_eth0']['ipv4']['address'] }} zoo_id=3
+
+[mesos_workers]
+{% for host in groups['tag_workers'] %}
+{{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}
+{% endfor %}
