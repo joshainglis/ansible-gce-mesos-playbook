@@ -29,6 +29,7 @@
       apt_repository: repo="ppa:ansible/ansible"
       when: ansible_os_family == "Debian"
       sudo: yes
+      ignore_errors: yes
 
     - name: install deps (Ubuntu)
       apt: >
@@ -76,6 +77,6 @@
         chdir: ~/ansible-mesos-playbook/
         creates: librarian-roles
 
-    - template: src=templates/hosts.j2 dest=~/ansible-mesos-playbook/hosts
-    - template: src=templates/ansible.cfg.j2 dest=~/ansible-mesos-playbook/ansible.cfg
+    - copy: src=templates/hosts.j2 dest=~/ansible-mesos-playbook/hosts
+    - copy: src=templates/ansible.cfg.j2 dest=~/ansible-mesos-playbook/ansible.cfg
 
