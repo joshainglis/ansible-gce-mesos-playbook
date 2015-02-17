@@ -32,7 +32,7 @@
     - name: install deps (Ubuntu)
       apt: >
         pkg={{item}}
-        state=installed
+        state=latest
       with_items:
         - git
         - ansible
