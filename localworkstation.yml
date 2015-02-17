@@ -70,7 +70,11 @@
 
 
     - name: git clone ansible-mesos-playbook
-      git: repo=https://github.com/fullergalway/ansible-mesos-playbook.git dest=~/ansible-mesos-playbook update=no
+      #git: repo=https://github.com/fullergalway/ansible-mesos-playbook.git dest=~/ansible-mesos-playbook update=no 
+      command: git clone https://github.com/fullergalway/ansible-mesos-playbook.git ansible-mesos-playbook
+      args: 
+        chdir: ~/
+        creates: ansible_mesos_playbook
 
     - command: librarian-ansible install
       args: 
