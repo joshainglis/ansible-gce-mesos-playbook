@@ -7,3 +7,6 @@
 {% for host in groups['tag_workers'] %}
 {{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}
 {% endfor %}
+
+[nimbus]
+{{ hostvars[groups['tag_zk1'][0]]['ansible_eth0']['ipv4']['address'] }}
