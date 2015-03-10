@@ -79,6 +79,18 @@
     - command: librarian-ansible install
       args: 
         chdir: ~/ansible-mesos-playbook/
+
+    - file: 
+        state=directory
+        recurse=yes
+        path=~/ansible-mesos-playbook/librarian_roles/ansible-cassandra/files
+
+    - name: create ssh key for cassandra opscenter
+      command: ssh-keygen -b 2048 -t rsa -q -N "" -f librarian_roles/ansible-cassandra/files/opscenter_user_ssh_key
+      args:
+        chdir: ~/ansible-mesos-playbook/
+        creates: librarian_roles/ansible-cassandra/files/opscenter_user_ssh_key
+
         creates: librarian-roles
 
     - copy: src=templates/hosts.j2 dest=~/ansible-mesos-playbook/hosts
