@@ -6,13 +6,13 @@
   gather_facts: yes
   tasks:
     - name: generate an ssh key
-      command: ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""
+      command: ssh-keygen -b 2048 -t rsa -f /home/josha/.ssh/id_rsa -q -N ""
       sudo: yes
       args:
-        creates: ~/.ssh/id_rsa
+        creates: /home/josha/.ssh/id_rsa
 
     - name: Downloading pub key
-      fetch: src=~/.ssh/id_rsa.pub dest=/tmp/workstation_id_rsa.pub flat=yes fail_on_missing=yes
+      fetch: src=/home/josha/.ssh/id_rsa.pub dest=/tmp/workstation_id_rsa.pub flat=yes fail_on_missing=yes
 
     - name: Install EPEL repo.
       sudo: yes
@@ -61,7 +61,10 @@
 
 
     - name: git clone ansible-mesos-playbook
-      git: repo=https://github.com/joshainglis/ansible-mesos-playbook.git dest=~/ansible-mesos-playbook update=yes
+      git: repo=https://github.com/joshainglis/ansible-mesos-playbook.git
+           dest=~/ansible-mesos-playbook
+           update=yes
+           force=yes
 
     - command: librarian-ansible install
       args: 
@@ -95,7 +98,7 @@
 
     # had some problems using authorized_key module, alas...
     - name: allow access from workstation
-      lineinfile: dest=~/.ssh/authorized_keys line="{{ pub_key }}"
+      lineinfile: dest=/home/josha/.ssh/authorized_keys line="{{ pub_key }}"
 - hosts: tag_workstation
   tasks:
     - name: orchestrate mesos cluster
