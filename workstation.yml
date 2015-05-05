@@ -5,51 +5,39 @@
 - hosts: tag_workstation
   gather_facts: yes
   tasks:
-    - name: generate an ssh key
-      command: ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""
-      args:
-        creates: ~/.ssh/id_rsa
-    - name: Downloading pub key
-      fetch: src=~/.ssh/id_rsa.pub dest=/tmp/workstation_id_rsa.pub flat=yes fail_on_missing=yes
-    - name: update apt
-      apt: >
-        update_cache=yes
-        cache_valid_time=3600
-      when: ansible_os_family == "Debian"
-      sudo: yes
+#    - name: generate an ssh key
+#      command: ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ""
+#      args:
+#        creates: ~/.ssh/id_rsa
+#
+#    - name: Downloading pub key
+#      fetch: src=~/.ssh/id_rsa.pub dest=/tmp/workstation_id_rsa.pub flat=yes fail_on_missing=yes
+#
+    - name: Install EPEL repo.
+      yum:
+        name: http://download.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        state: present
 
-    - name: install deps (Ubuntu)
-      apt: pkg=software-properties-common
-      when: ansible_os_family == "Debian"
-      sudo: yes
-    
-    
-    - name: add ppa repository
-      apt_repository: repo="ppa:ansible/ansible"
-      when: ansible_os_family == "Debian"
-      sudo: yes
+    - name: Import EPEL GPG key.
+      rpm_key:
+        key: /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+        state: present
 
-    - name: install deps (Ubuntu)
-      apt: >
-        pkg={{item}}
-        state=latest
-      with_items:
-        - git
-        - ansible
-        - ruby1.9.3
-      when: ansible_os_family == "Debian"
-      sudo: yes
-    
     - name: install deps (RHEL)
       yum: >
         pkg={{item}}
         state=installed
       with_items:
         - git
+        - gem
+        - python-pip
         - ansible
       when: ansible_os_family == "RedHat"
       sudo: yes
 
+#    - name: install ansible
+#      pip: name=ansible state=present
+#
     - name: install gem librarian
       gem: name={{item}} state=present user_install=no
       sudo: yes
@@ -68,7 +56,7 @@
 
 
     - name: git clone ansible-mesos-playbook
-      git: repo=https://github.com/fullergalway/ansible-mesos-playbook.git dest=~/ansible-mesos-playbook update=no
+      git: repo=https://github.com/joshainglis/ansible-mesos-playbook.git dest=~/ansible-mesos-playbook update=no
 
     - command: librarian-ansible install
       args: 
