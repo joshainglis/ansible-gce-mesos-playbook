@@ -7,7 +7,6 @@
   tasks:
     - name: generate an ssh key
       command: ssh-keygen -b 2048 -t rsa -f /home/josha/.ssh/id_rsa -q -N ""
-      sudo: yes
       args:
         creates: /home/josha/.ssh/id_rsa
 
