@@ -104,3 +104,12 @@
       command: ansible-playbook -i ./hosts playbook.yml
       args: 
         chdir: ~/ansible-mesos-playbook/
+
+    - name: copy gitub keys to workstation
+      copy: src=/Users/josha/.ssh/gce_gh.pub dest=/home/josha/gce_gh.pub
+      copy: src=/Users/josha/.ssh/gce_gh dest=/home/josha/gce_gh
+
+    - name: deploy insomniac
+      command: ansible-playbook -i ./hosts insomniac.yml
+      args:
+        chdir: ~/ansible-mesos-playbook/

@@ -1,0 +1,23 @@
+- hosts: tag_workstation
+  tasks:
+    - name: remove old repos (insomniac)
+      sudo: yes
+      file: path=/home/josha/insomniac.tar state=absent
+
+    - name: remove old repos (insomniac-demo)
+      sudo: yes
+      file: path=/home/josha/insomniac-demo.tar state=absent
+
+    - name: get insomniac
+      command: 'curl -sL --user "{{ gh_user }}:{{ gh_token }}" https://github.com/iixlabs/insomniac/tarball/master -o insomniac.tar'
+
+    - name: get insomniac-demo
+      command: 'curl -sL --user "{{ gh_user }}:{{ gh_token }}" https://github.com/iixlabs/insomniac-demo/tarball/master -o insomniac-demo.tar'
+
+    - name: copy insomniac playbook to server
+      copy: src=/Users/josha/workspace/ansible/josha/ansible-mesos-playbook/insomniac.yml dest=/home/josha/ansible-mesos-playbook/insomniac.yml
+
+    - name: deploy insomniac
+      command: ansible-playbook -i ./hosts insomniac.yml
+      args:
+        chdir: ~/ansible-mesos-playbook/
